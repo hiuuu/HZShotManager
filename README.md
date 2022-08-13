@@ -9,7 +9,7 @@ in third Tab there is some custom script that related to previuos tabs </br>
 just copy folder in maya script folder
 
 # How To use 
-  copy python file into maya script folder then run these lines: </br>
+  run these lines: </br>
 </br>
 from HZShotManager import HZShotManager as hzsm </br>
 hzsm.HZShotManager().showUI() </br>
