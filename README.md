@@ -5,11 +5,13 @@ this version has been tested in maya 2019 and maya 2020 </br>
 In the UI Tabs, the script has tools to export multiple files of shots that created by First Tab </br>
 in third Tab there is some custom script that related to previuos tabs </br>
 
-# How To use :
+# Installation
+just copy folder in maya script folder
+
+# How To use 
   copy python file into maya script folder then run these lines: </br>
 </br>
 from HZShotManager import HZShotManager as hzsm </br>
 hzsm.HZShotManager().showUI() </br>
 
-# Installation
-just copy folder in maya script folder
+
