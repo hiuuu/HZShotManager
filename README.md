@@ -6,7 +6,7 @@ In the UI Tabs, the script has tools to export multiple files of shots that crea
 in third Tab there is some custom script that related to previuos tabs </br>
 
 # Installation
-just copy folder in maya script folder
+just create a folder named as `HZShotManager` then copy entire files to it then move the folder to maya public script folder 
 
 # How To use 
   run these lines: </br>
