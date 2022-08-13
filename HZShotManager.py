@@ -247,7 +247,7 @@ class HZShotManager:
         linkedin = MC.text(
             label="<a href=\"https://linkedin.com/in/hamedzandieh\">Linkedin Profile</a>", hyperlink=True, font='boldLabelFont')            
         q1 = MC.text(label="Do you like HashZee Shot Manager?", w=210)
-        img = MC.iconTextButton(label="Buy Me a Coffee!", style="iconOnly", command=lambda *args: webbrowser.open_new_tab(DONATE_URL),
+        img = MC.iconTextButton(label="Buy Me a Coffee!", ann="My Etherium Wallet", style="iconOnly", command=lambda *args: webbrowser.open_new_tab(DONATE_URL),
                                    image=self.getImagePath("jaxx-etherium-qr-code"), highlightImage=self.getImagePath("jaxx-etherium-qr-code"),
                                    )
         elt = MC.text(label="I really appreciate\nthe support!")
