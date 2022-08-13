@@ -234,7 +234,7 @@ class HZShotManager:
 
     def showAbout(self, *args):
         import webbrowser
-        DONATE_URL = "#"
+        DONATE_URL = "https://nowpayments.io/donation/HamedZandieh"
         SITE_URL = "#"
         form = MC.setParent(q=True)
         MC.formLayout(form, edit=True, w=430)
