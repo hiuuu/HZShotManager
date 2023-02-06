@@ -430,6 +430,129 @@ class HZShotManager:
         finally:
             MC.refresh(su=False)
 
+    def getCurrentCamera(self, ):
+        '''
+        Returns the camera that you're currently looking through.
+        If the current highlighted panel isn't a modelPanel,
+        '''
+
+        panel = MC.getPanel(withFocus=True)
+
+        if MC.getPanel(typeOf=panel) != 'modelPanel':
+            #just get the first visible model panel we find, hopefully the correct one.
+            for p in MC.getPanel(visiblePanels=True):
+                if MC.getPanel(typeOf=p) == 'modelPanel':
+                    panel = p
+                    MC.setFocus(panel)
+                    break
+
+        if MC.getPanel(typeOf=panel) != 'modelPanel':
+            print('Please highlight a camera viewport.')
+            return False
+
+        camShape = MC.modelEditor(panel, query=True, camera=True)
+        if not camShape:
+            return False
+
+        camNodeType = MC.nodeType(camShape)
+        if MC.nodeType(camShape) == 'transform':
+            return camShape
+        elif MC.nodeType(camShape) in ['camera','stereoRigCamera']:
+            return MC.listRelatives(camShape, parent=True, path=True)[0]
+
+
+    def getRenderResolution(self):
+        defaultResolution = "defaultResolution"
+        width = MC.getAttr(defaultResolution+".width")
+        height = MC.getAttr(defaultResolution+".height")
+        return [width, height]
+
+    def onlyShowObj(self, types, panelName=None):   
+        allTypes    = ["nurbsCurves", "nurbsSurfaces", "polymeshes", "subdivSurfaces", "planes", "lights", "cameras", "controlVertices", "grid", "hulls", "joints", "ikHandles", "deformers", "dynamics", "fluids", "hairSystems", "follicles", "nCloths", "nParticles", "nRigids", "dynamicConstraints", "locators", "manipulators", "dimensions", "handles", "pivots", "textures", "strokes"]
+        if not panelName: panelName = MC.getPanel(withFocus=True)
+        #views       = MC.getPanel(type='modelPanel')
+        #if panelName in views:
+        if not MC.modelEditor(panelName, exists=True): return
+        MC.modelEditor(panelName, edit=True, allObjects=True, displayAppearance="smoothShaded", displayTextures=True)
+        for loopType in allTypes:
+            if not loopType in types:
+                # eval("cmds.modelEditor(panelName, edit=True, %s=False)"%loopType)
+                MM.eval("modelEditor -edit -%s 0 %s;"%(loopType, panelName))
+            else:
+                # eval("cmds.modelEditor(panelName, edit=True, %s=True)"%loopType)
+                MM.eval("modelEditor -edit -%s 1 %s;"%(loopType, panelName))
+
+    def cameraViewMode(self, panelName=None):
+        if not panelName: panelName   = MC.getPanel(withFocus=True)
+        self.onlyShowObj(["polymeshes"], panelName)
+        if (len(MC.ls(type="light")) > 0): lights =  "all"
+        else : lights = "default"
+        MC.modelEditor(panelName, edit=True, displayLights=lights, selectionHiliteDisplay=False)
+
+    def squenceBlast(self):
+        MC.select(cl=1)
+        currentFileName = MC.file(query=True, l=True)[0]
+        current_project = MC.workspace(q=True, rootDirectory=True)
+        scene_path, scene_name = os.path.split(currentFileName) 
+        camera = MC.nameField(self.objsName, q=1, object=1)
+        if not camera: 
+            camera = self.getCurrentCamera()
+        winName = 'playblastWindow'
+        timeLine = MM.eval("$tmp=$gPlayBackSlider")
+        overscan = MC.getAttr("%s.overscan"%camera)   
+        audioTrack = MC.timeControl(timeLine, query=True, sound=True)
+        widthHeight = self.getRenderResolution()  
+        if MC.window(winName, query=True, exists=True): MC.deleteUI(winName)
+        window = MC.window(winName, widthHeight=widthHeight)
+        form = MC.formLayout()
+        editor = MC.modelEditor()
+        column = MC.columnLayout('true')
+        
+        MC.setAttr("hardwareRenderingGlobals.enableTextureMaxRes",1)
+        MC.setAttr("hardwareRenderingGlobals.textureMaxResMode",0)       
+        MC.formLayout( form, edit=True, attachForm=[(column, 'top', 0), (column, 'left', 0), (editor, 'top', 0), (editor, 'bottom', 0), (editor, 'right', 0)], attachNone=[(column, 'bottom'), (column, 'right')], attachControl=(editor, 'left', 0, column))
+        MC.modelEditor(editor, edit=True, camera=camera, activeView=True)
+        MC.modelEditor(editor, edit=True, displayAppearance='smoothShaded')
+        MC.modelEditor(editor, edit=True, textures=True)
+        MC.modelEditor(editor, edit=True, occlusionCulling=True)
+        MC.setAttr("hardwareRenderingGlobals.ssaoEnable", 1)
+        # MC.setAttr("hardwareRenderingGlobals.ssaoRadius", 16)
+        # MC.setAttr("hardwareRenderingGlobals.ssaoFilterRadius", 16)
+        # MC.setAttr("hardwareRenderingGlobals.ssaoSamples", 16)
+        # MC.setAttr("hardwareRenderingGlobals.ssaoAmount", 1.0)        
+        MC.showWindow( window )
+        MC.window( winName, edit=True, topLeftCorner=(0, 0), widthHeight=[100,100])        
+        self.cameraViewMode(editor)        
+        MC.setAttr("%s.overscan"%camera, 1)
+        fps = MM.eval("currentTimeUnitToFPS") 
+        if audioTrack:
+            self.TU_audioFile = MC.sound(audioTrack, query=True, file=True)
+            audioOffset = MC.sound(audioTrack, query=True, offset=True)
+            self.TU_audioOffsetSec = str((rFrom - audioOffset)/-fps)
+
+        shotsInfo =  self.loadData()
+        for sh in shotsInfo:
+            if self.checkProgressEscape(): return
+            MM.eval('playbackOptions -min {0} -max {1} -ast {0} -aet {1}'.format(sh['start'],sh['stop']) )
+            rFrom = sh['start']
+            rTo   = sh['stop']
+            movieFile = os.path.abspath( os.path.join(current_project, "movies/%s_SH%s_ANI_v001.mov"
+                                            %(scene_name.replace('.ma','').replace('.mb',''), sh['name']) ))
+            movieName = MC.playblast( filename = movieFile , startTime=rFrom ,endTime=rTo , format="qt",
+                                forceOverwrite=True, viewer=1, showOrnaments=0, offScreen=True, fp=4, percent=100, 
+                                compression="H.264", quality=100, widthHeight=[1280,720], clearCache=True)
+        print("%s"%movieName,'i')
+        # if movieName: 
+        #     self.TU_movie = "%s.%s-%s#.mov"%(movieName.split(".")[0], int(rFrom), int(rTo))
+        #     if audioTrack:  self.TU_audioOffsetSec = audioOffset
+        #     self.playMovie(self.TU_movie, self.TU_audioFile, self.TU_audioOffsetSec)
+        if MC.window(winName, query=True, exists=True): MC.deleteUI(winName)
+        MC.setAttr("%s.overscan"%camera, overscan)
+        MC.setAttr("hardwareRenderingGlobals.ssaoEnable", 0)
+        # if not self.TU_movie: return
+        # save = aToolsMod.getUserPref("saveAfterPlayblasting", default=True)
+        # if save and not rangeVisible: MC.file(save=True)   
+
     def loadTextdata(self, *args):
         jsonText = json.dumps(self.loadData(), sort_keys=True, indent=2, separators=(',', ': '))
         MC.scrollField(self.txt_alldata, e=1, text=jsonText)
@@ -558,11 +681,12 @@ class HZShotManager:
         MC.text(l="", h=20)
         MC.button(l='Setup Animation Camera', ann="Configure selected camera", h=40, c=self.setupAnimCam,bgc=self.hex2rgb('003311'))
         MC.button(l="Regenerate Timiline Bookmarks",bgc=self.hex2rgb('003311'), h=40
-                , ann="In maya version before 2020 it only sets keyframes for animation camera.\n"
+                , ann="In maya version 2019 and lower it only sets keyframes for animation camera.\n"
                     "But if timeline marker (gum.co/maya-timeline-marker) had been installed,\n"
                     "HZShotManager makes timeline marker using that."
                 , c=self.generateTimeMarks )
         MC.button(l="Set Keyframes for Shots", ann='Set keyframe everytings at start and end of shot.', h=40, c=self.setKeyShots, bgc=self.hex2rgb('003311'))
+        MC.button(l="Create Sequence Blasts", ann='Select Camera first...', h=40, c=self.squenceBlast, bgc=self.hex2rgb('330011'))
         MC.setParent( u=1 )
 
         editTab = MC.columnLayout(adj=1,columnWidth=windowWidth,columnAttach=('both', 5), rowSpacing=10)
