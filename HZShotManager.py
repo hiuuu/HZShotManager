@@ -535,8 +535,10 @@ class HZShotManager:
             if self.checkProgressEscape(): return
             rFrom = sh['start']
             rTo   = sh['stop']
-            movieFile = os.path.abspath( os.path.join(current_project, "movies/%s_%s_ANI_v001.mov"
-                                            %(scene_name.replace('.ma','').replace('.mb',''), str(sh['name']).replace('OT_','')) ))
+            epNameSplit = scene_name.split('_', maxsplit=2)[:1]
+            epName = ('_').join(epNameSplit)
+            shName = str(sh['name']).split('_', maxsplit=2)[:1]
+            movieFile = os.path.abspath( os.path.join(current_project, "movies/%s_%s_ANI_v001.mov"%(epName, shName) ))
             movieName = MC.playblast( filename = movieFile , startTime=rFrom ,endTime=rTo , format="qt",
                                 forceOverwrite=True, viewer=0, showOrnaments=0, offScreen=True, fp=4, percent=100, 
                                 compression="H.264", quality=100, widthHeight=[1280,720], clearCache=True)
