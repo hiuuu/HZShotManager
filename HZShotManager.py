@@ -22,7 +22,7 @@ import re, json, os, subprocess, sys
 
 class HZShotManager:
 
-    __version__ = '2.1.0'
+    __version__ = '2.2.0'
 
     def __init__(self, *args):
         self.__WINDOW_NAME = "HZShotManagerWindow"
