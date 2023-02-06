@@ -489,7 +489,7 @@ class HZShotManager:
         else : lights = "default"
         MC.modelEditor(panelName, edit=True, displayLights=lights, selectionHiliteDisplay=False)
 
-    def squenceBlast(self):
+    def squenceBlast(self, *args):
         MC.select(cl=1)
         currentFileName = MC.file(query=True, l=True)[0]
         current_project = MC.workspace(q=True, rootDirectory=True)
