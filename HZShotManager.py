@@ -533,11 +533,10 @@ class HZShotManager:
         shotsInfo =  self.loadData()
         for sh in shotsInfo:
             if self.checkProgressEscape(): return
-            MM.eval('playbackOptions -min {0} -max {1} -ast {0} -aet {1}'.format(sh['start'],sh['stop']) )
             rFrom = sh['start']
             rTo   = sh['stop']
-            movieFile = os.path.abspath( os.path.join(current_project, "movies/%s_SH%s_ANI_v001.mov"
-                                            %(scene_name.replace('.ma','').replace('.mb',''), sh['name'].replace('SHOT_','')) ))
+            movieFile = os.path.abspath( os.path.join(current_project, "movies/%s_%s_ANI_v001.mov"
+                                            %(scene_name.replace('.ma','').replace('.mb',''), str(sh['name']).replace('OT_','')) ))
             movieName = MC.playblast( filename = movieFile , startTime=rFrom ,endTime=rTo , format="qt",
                                 forceOverwrite=True, viewer=0, showOrnaments=0, offScreen=True, fp=4, percent=100, 
                                 compression="H.264", quality=100, widthHeight=[1280,720], clearCache=True)
