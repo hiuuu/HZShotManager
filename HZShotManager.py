@@ -22,7 +22,7 @@ import re, json, os, subprocess, sys
 
 class HZShotManager:
 
-    __version__ = '2.2.0'
+    __version__ = '2.3.0'
 
     def __init__(self, *args):
         self.__WINDOW_NAME = "HZShotManagerWindow"
@@ -224,12 +224,12 @@ class HZShotManager:
             MC.setAttr('%s.sz'%cam, k=False, cb=False)
             MC.setAttr('%s.v'%cam, k=False, cb=True)
         except Exception: pass
-        cmaSetName = 'Cam_Anim'
-        if cmaSetName not in MC.listSets(allSets=1):
-            MC.sets([cam], name=cmaSetName)
-        else:
-            MC.sets(e=1, cl=cmaSetName)
-            MC.sets([cam], e=1, add=cmaSetName)
+        # cmaSetName = 'Cam_Anim'
+        # if cmaSetName not in MC.listSets(allSets=1):
+        #     MC.sets([cam], name=cmaSetName)
+        # else:
+        #     MC.sets(e=1, cl=cmaSetName)
+        #     MC.sets([cam], e=1, add=cmaSetName)
         return cam
 
     def showAbout(self, *args):
