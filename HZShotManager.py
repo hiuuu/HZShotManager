@@ -364,9 +364,10 @@ class HZShotManager:
                     else:
                         MM.eval('playbackOptions -min {0} -max {1} -ast {0} -aet {1}'.format(sh['start'],sh['stop']) )
                         flShInfo = [{'name':sh['name'], 'color':sh['color'], 'start':sh['start'], 'stop':sh['stop']}]
-                    epName = "EP" + (scene_name.split('_')[1])
+                    name_matches = re.search(r"^(EP\d+)\D.*(_v\d+)\D*.*$", scene_name)
+                    epName, verName =  name_matches.groups() if name_matches else ("EP000","v001") # "EP" + (scene_name.split('_')[1])
                     shName = "SH" + (str(sh['name']).split('_')[1])
-                    sceneFile = os.path.join(shotsDir, "%s_%s_ANI_v002.ma"%(epName, shName) )
+                    sceneFile = os.path.join(shotsDir, "%s_%s_ANI_%s.ma"%(epName, shName, verName) )
                     # MC.file( rename=os.path.join(shotsDir ,'%s_SHOT_%s.ma'%(scene_name.replace('.ma',''), sh['name'].replace('SH0T_','') ) ))
                     MC.file( rename=sceneFile )
                     self.generateTimeMarks(flShInfo)
